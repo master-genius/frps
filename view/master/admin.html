@@ -1,0 +1,132 @@
+<?php include (VIEW_PATH . '/master/header.html'); ?>
+
+<div class="grid-container " id="main-container">
+    <div class="grid-x">
+        <form onsubmit="return false;">
+            <div class="grid-x grid-margin-x">
+
+                <div class="cell small-6 medium-4 large-3">
+                    <label for="">用户名</label>
+                    <input type="text" value="" id="username">
+                </div>
+
+                <div class="cell small-6 medium-4 large-3">
+                    <label for="">密码</label>
+                    <input type="text" id="passwd" value="">
+                </div>
+
+                <div class="cell small-6 medium-4 large-3">
+                    <label for="">作者署名</label>
+                    <input type="text" id="author-name" value="">
+                </div>
+
+                <div class="cell small-6 medium-4 large-3">
+                    <label for="">角色</label>
+                    <select name="" id="role-list">
+                        <option value="rs-admin">内容管理</option>
+                    </select>
+                </div>
+
+                <div class="cell small-6 medium-4 large-3">
+                    <label for="">&nbsp;</label>
+                    <input type="submit" class="button success" value="Add" onclick="ajax_add_admin()">
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+    <div class="grid-x">
+        <div class="cell small-12" id="admin-list">
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function show_admin_list(li) {
+        var html = '';
+
+        for(var i=0; i<li.length; i++) {
+            html += `
+                <div class="grid-x" style="margin-top:0.8rem;">
+                    <div class="cell small-6 medium-4 large-3">
+                        <span ondblclick="show_upd_block('name')">
+                            ${li[i].username}
+                        </span>
+                    </div>
+
+                    <div class="cell small-6 medium-4 large-3">
+                        <span ondblclick="show_upd_block('author')">
+                            ${li[i].author_name}
+                        </span>
+                    </div>
+
+                    <div class="cell small-6 medium-4 large-3">
+                        <a href="javascript:del_confirm(${li[i].id});" style="color:#451234;font-size:86%;">
+                            删除
+                        </a>
+                    </div>
+
+                </div>
+            `;
+        }
+
+        brutal.autod('#admin-list', html);
+    }
+
+    function ajax_admin_list() {
+        _apicall({
+            name : 'admin_list',
+            success : function(xr) {
+                if (xr.status == 0) {
+                    show_admin_list(xr.admin_list);
+                }
+            }
+        });
+    }
+
+    function ajax_update_admin(id) {
+
+    }
+
+    function del_confirm(id) {
+
+    }
+
+    function ajax_remove_admin(id) {
+
+    }
+
+    function ajax_add_admin() {
+        var adm = {
+            username : brutal.autod('#username'),
+            passwd : brutal.autod('#passwd'),
+            author_name : brutal.autod('#author-name'),
+            role : brutal.selected('#role-list')
+        };
+
+        _apicall({
+            name : 'admin_add',
+            data : adm,
+            success : function(xr) {
+                if (xr.status == 0) {
+                    brutal.autod('#username', '');
+                    brutal.autod('#passwd', '');
+                    brutal.autod('#author-name', '');
+                    ajax_admin_list();
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            }
+        });
+    }
+
+    window.onpageshow = function() {
+        ajax_admin_list();
+    };
+
+</script>
+
+<?php include (VIEW_PATH . '/master/footer.html'); ?>

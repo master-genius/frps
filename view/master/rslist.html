@@ -1,0 +1,268 @@
+<?php include (VIEW_PATH . '/master/header.html'); ?>
+<div id="search-block" class=""></div>
+<div class="grid-container" id="main-container">
+    <div class="grid-x">
+        <div class="cell small-12" id="rs-list">
+            
+        </div>
+    </div>
+    
+</div>
+<div class="footer-top-bar-space"></div>
+<div class="footer-top-bar" style="text-align: center;" id="pagination"></div>
+
+<script>
+    if (wstg_getItem('rs-list-init') === null) {
+        wstg_setItem('rs-list-init', '1');
+        wstg_setItem('rs-list-page', '1');
+        wstg_setItem('rs-list-group', '');
+        wstg_setItem('rs-list-keyword', '');
+    }
+
+    function init_group_list(group_list) {
+        var html = '';
+        for(var i=0; i<group_list.length; i++) {
+            html += `
+                <option value="${group_list[i].id}">
+                    ${group_list[i].group_name}
+                </option>
+            `;
+        }
+        
+        brutal.html('#group-list', html, true);
+    }
+
+    function show_search_block() {
+        brutal.classname('#search-block', 'hide');
+        brutal.autod('#search-block', `
+            <div style="text-align:center;">
+                <h3 onclick="hide_search_block()">X</h3>
+            </div>
+            <form onsubmit="return false;">
+                <select id="group-list">
+                    <option value="--all--">所有</option>
+                </select>
+
+                <input type="text" value="${wstg_getItem('rs-list-keyword')}" id="search-kwd">
+                <input type="submit" value="搜索" class="button hollow info" onclick="search_rslist()">
+            </form>
+        `);
+
+        if (wstg_getItem('group-list', true) !== null) {
+            init_group_list(wstg_getItem('group-list', true));
+            brutal.selected('#group-list', 
+                            'set', 
+                            wstg_getItem('rs-list-group')
+                        );
+        } else {
+            _api_call.call({
+                api : 'group_list',
+                method: 'get',
+                success:function(xr) {
+                    if (xr.status == 0) {
+                        init_group_list(xr.group_list);
+                        wstg_setItem('group-list', xr.group_list, true);
+                        brutal.selected('#group-list', 
+                            'set', 
+                            wstg_getItem('rs-list-group')
+                        );
+                    } else {
+                        show_system_info(xr.errinfo);
+                    }
+                }
+            });
+        }
+        brutal.classname('#search-block', 'right-front-half-block');
+    }
+
+    function hide_search_block() {
+        brutal.autod('#search-block', '');
+        brutal.classname('#search-block', '');
+    }
+
+    function search_rslist() {
+        var kwd = brutal.autod('#search-kwd');
+        wstg_setItem('rs-list-keyword', kwd);
+        brutal.autod('#search-keywords', kwd);
+        wstg_setItem('rs-list-group', brutal.selected('#group-list'));
+        wstg_setItem('rs-list-page', '1');
+        hide_search_block();
+        ajax_rs_list();
+    }
+
+    function show_total_info(t) {
+        var curp = parseInt(wstg_getItem('rs-list-page'));
+
+        if (t.total_page < curp) {
+            wstg_setItem('rs-list-page', t.total_page);
+            ajax_rs_list();
+        }else {
+            com_set_pageinfo(wstg_getItem('rs-list-page'), t.total_page);
+        }
+    }
+
+    function show_rs_list(rslist) {
+        var html = '';
+        for (var i=0; i<rslist.length; i++) {
+            html += `
+                <div class="grid-x" style="margin-bottom: .2rem; margin-top: .8rem;border-bottom:solid .05rem #e2e2e2;">
+                    <div class="cell small-1 medium-1 large-1">
+                        <input type="checkbox" value="${rslist[i].id}" class="rs-check">
+                    </div>
+                    <div class="cell small-11 medium-8 large-6">
+                        <a href="/backend/rs/edit/${rslist[i].id}" style="color:#4a4a4a;">
+                            ${rslist[i].rs_title}
+                        </a>
+                    </div>
+                    <div class="cell small-1 medium-1 large-1">
+                        `+
+                    (parseInt(rslist[i].is_article)==1 ? 'wx' : '--')
+                        +`
+                    </div>
+                    <div class="cell small-11 medium-2 large-4">
+                        <span onclick="del_rs_confirm(${rslist[i].id})" style="font-size:86%;">
+                            删除
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        brutal.autod('#rs-list', html);
+    }
+
+    function del_rs_confirm(id){
+        show_alert_block(`
+            <div>
+                <p>确定删除？</p>
+                <button class="button hollow alert tiny" onclick="ajax_rs_del(${id})">
+                    确定    
+                </button>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="button hollow warning tiny" onclick="hide_alert_block()">
+                     取消   
+                </button>
+            </div>
+        `);
+    }
+
+    function ajax_rs_del(id) {
+        api_get({
+            url : _sysv.host + `/master/rs/delete/${id}`,
+            success : function (xr) {
+                if (xr.status == 0) {
+                    hide_alert_block();
+                    ajax_rs_list();
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            },
+
+        });
+    }
+
+    function ajax_rs_list() {
+        var page = wstg_getItem('rs-list-page');
+        var query_data = 'page=' + encodeURIComponent(page);
+
+        var kwd = wstg_getItem('rs-list-keyword');
+        if (kwd !== null && kwd !== '') {
+            query_data += '&kwd=' + encodeURIComponent(kwd);
+        }
+
+        var group = wstg_getItem('rs-list-group');
+        if (group !== null && group!=='') {
+            query_data += '&group=' + encodeURIComponent(group);
+        }
+
+        api_get({
+            url : _sysv.host + '/master/rs/list?'+query_data,
+            success : function (xr) {
+                if (xr.status == 0) {
+                    if (xr.total_page > 0 && parseInt(page) > xr.total_page) {
+                        wstg_setItem('rs-list-page', xr.total_page);
+                        ajax_rs_list();
+                    }
+                    if (parseInt(page) <= 0 && xr.total_page > 0) {
+                        wstg_setItem('rs-list-page', xr.cur_page);
+                    }
+                    show_total_info(xr);
+                    show_rs_list(xr.rs_list);
+                }
+            }
+
+        });
+    }
+
+    function set_rs_list_check_all() {
+        var chk = brutal.checked('#rs-check-all', 'bool');
+        if (chk) {
+            brutal.checked('.rs-check', 'set');
+        } else {
+            brutal.checked('.rs-check', 'unset');
+        }
+    }
+
+    function ajax_rs_delall() {
+        var idlist = brutal.checked('.rs-check','list', 'check');
+        api_post({
+            url : _sysv.host + '/master/rs/delete/all',
+            data : `idlist=${encodeURIComponent(JSON.stringify(idlist))}`,
+            success : function(xr) {
+                hide_alert_block();
+                if (xr.status == 0) {
+                    brutal.checked('#rs-check-all', 'unset');
+                    ajax_rs_list();
+                } else {
+                    show_system_info(xr.errinfo);
+                }
+            },
+            except : function(e) {
+                show_system_info('system error');
+            }
+        });
+    }
+
+    function batch_del_confirm() {
+        var idlist = brutal.checked('.rs-check','list', 'check');
+        if (idlist.length == 0) {
+            return ;
+        }
+        show_alert_block(`
+            <div>
+                <p>确定删除所有选中？</p>
+                <button class="button hollow alert tiny" onclick="ajax_rs_delall()">
+                    确定    
+                </button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="button hollow warning tiny" onclick="hide_alert_block()">
+                     取消   
+                </button>
+            </div>
+        `);
+    }
+
+    function change_page(page) {
+        wstg_setItem('rs-list-page', page);
+        ajax_rs_list();
+    }
+
+    window.onpageshow = function() {
+        init_com_pagination('#pagination');
+        brutal.autod('#sys-common-bar',`
+            全选<input type="checkbox" id="rs-check-all" onchange="set_rs_list_check_all()">
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <span onclick="batch_del_confirm()">删除</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            Resource List <a href="javascript:show_search_block();">搜索:</a>
+            <span id="search-keywords">${wstg_getItem('rs-list-keyword')}</span>
+        `);
+
+        com_init_page_evt(change_page,change_page,change_page);
+
+        ajax_rs_list();
+    }
+</script>
+
+
+<?php include (VIEW_PATH . '/master/footer.html'); ?>

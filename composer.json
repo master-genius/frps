@@ -1,0 +1,19 @@
+{
+    "require": {
+        "slim/slim": "^3.0",
+        "catfan/medoo": "^1.5"
+    },
+    "autoload":{
+        "files":["./lib/common.php","./lib/syscall.php"],
+        "psr-4":{
+            "core\\"        : "core",
+            "first\\"       : "first",
+            "weixin\\"      : "weixin",
+            "master\\"      : "master",
+            "errcode\\"     : "errcode",
+            "filter\\"      : "filter",
+            "msqserv\\"     : "msqserv",
+            "uauth\\"       : "uauth"
+        }
+    }
+}

@@ -1,0 +1,51 @@
+<?php include (VIEW_PATH . '/first/header.html'); ?>
+
+<div class="" id="main-container" style="height:100%;">
+
+</div>
+
+<script src="/static/first/page/home.js"></script>
+<script src="/static/first/page/rslist.js"></script>
+<script src="/static/first/page/rs.js"></script>
+<script>
+    var default_page = 'home';
+
+    var page_table = {
+        home : home,
+        rslist : rslist,
+    };
+
+    if (typeof page_table[window.location.hash] === undefined) {
+        window.location.hash = `#${default_page}`;
+    }
+
+    function page_load(hash) {
+        var page_name = hash.substring(1);
+        if (page_name == '') {
+            page_name = default_page;
+        }
+        
+        if (page_table[page_name] !== undefined) {
+            if (typeof page_table[page_name].oninit === 'function') {
+                page_table[page_name].oninit();
+            }
+        } else if (/^rs-[0-9]+$/.test(page_name)) {
+            if (typeof rs.oninit === 'function') {
+                rs.oninit();
+            }
+        } else {
+            window.location.hash = `#${default_page}`;
+        }
+    }
+
+    window.onhashchange = function() {
+        page_load(window.location.hash);
+    }
+    
+    window.onpageshow = function() {
+        page_load(window.location.hash);
+    }
+    
+</script>
+
+<?php include (VIEW_PATH . '/first/footer.html'); ?>

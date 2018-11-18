@@ -1,0 +1,184 @@
+<?php include (VIEW_PATH . '/master/header.html'); ?>
+
+<div class="grid-container" id="main-container">
+    <div class="grid-x" style="margin-top: 0.5rem;">
+        <div class="cell small-12">
+            <div class="input-group">
+                <input type="text" class="input-group-field" value="" id="add-group" placeholder="group name">
+                <div class="input-group-button">
+                    <input type="button" class="button hollow info" value="Add" onclick="ajax_add_group()">
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <div class="grid-x">
+        <div class="cell small-12" id="group-list">
+            
+        </div>
+    </div>
+</div>
+<script>
+    function show_group_list(glist) {
+        var html = '';
+        for(var i=0; i<glist.length; i++) {
+            html += `
+                <div class="grid-x" style="line-height:2.5rem;">
+                    <div class="cell small-2 medium-1 large-1">
+                        ${i+1}
+                    </div>
+                    <div class="cell small-4 medium-6 large-6">
+                        <span id="group-${glist[i].id}" ondblclick="ajax_upd_group(${glist[i].id})">${glist[i].group_name}</span>
+                    </div>
+            
+                    <div class="cell small-4 medium-3 large-3">
+                        <a class="alert float-right" href="javascript:del_group_confirm(${glist[i].id});" style="color:#ea2630;">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        brutal.autod('#group-list', html);
+    }
+
+    function ajax_group_list() {
+        _apicall({
+            name : 'group_list',
+            success : function (xr) {
+                show_group_list(xr.group_list);
+                wstg_setItem('group-list', xr.group_list, true);
+            }
+        });
+        /* api_get({
+            url : _sysv.host + '/master/group/list',
+            success:function(xr) {
+                show_group_list(xr.group_list);
+                wstg_setItem('group-list', xr.group_list, true);
+            }
+        }); */
+    }
+
+    function ajax_upd_group(id) {
+
+        var old = brutal.autod(`#group-${id}`, );
+        var name = prompt('New group name', old);
+        if (name === null) {
+            return ;
+        }
+
+        if (name === old) {
+            return ;
+        }
+
+        _apicall({
+            name : 'group_upd',
+            args : id,
+            data : {
+                id : id,
+                group_name : name
+            },
+            success : function (xr) {
+                if (xr.status == 0) {
+                    show_system_info(xr.info);
+                    brutal.autod('#group-'+id, name);
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            }
+        });
+
+        /* api_post({
+            url : _sysv.host + '/master/group/update/' + id,
+            data : `id=${id}&group_name=${name}`,
+            success : function(xr) {
+                if (xr.status == 0) {
+                    show_system_info(xr.info);
+                    brutal.autod('#group-'+id, name);
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            }
+        }); */
+
+    }
+
+    function ajax_add_group() {
+        var grp = {
+            group_name : brutal.autod('#add-group')
+        };
+        show_post_cover();
+        set_post_cover_data('<p>Starting Request...</p>');
+        api_post({
+            url : _sysv.host+'/master/group/add',
+            data : brutal.jsontodata(grp),
+            success:function (xr) {
+                hide_post_cover();
+                if (xr.status == 0) {
+                    brutal.autod('#add-group','');
+                    ajax_group_list();
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            },
+            error : function(e) {
+                hide_post_cover();
+            }
+        });
+    }
+
+    function ajax_del_group(id) {
+        _apicall({
+            name : 'group_del',
+            args : id,
+            success : function(xr) {
+                if (xr.status == 0) {
+                    hide_alert_block();
+                    ajax_group_list();
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            }
+        });
+        /* show_post_cover();
+        set_post_cover_data('<p>Starting Request...</p>');
+        api_post({
+            url : _sysv.host + '/master/group/delete/' + id,
+            data : `id=${id}`,
+            success:function(xr) {
+                hide_post_cover();
+                if (xr.status == 0) {
+                    hide_alert_block();
+                    ajax_group_list();
+                } else {
+                    show_system_info(xr.errinfo, false);
+                }
+            },
+            error: function(e) {
+                hide_post_cover();
+            }
+        }); */
+    }
+
+    function del_group_confirm(id) {
+        show_alert_block(`
+            <p>确定删除？</p>
+            <button class="button tiny hollow alert" onclick="ajax_del_group(${id})">
+                确定
+            </button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="button tiny hollow warning" onclick="hide_alert_block()">
+                取消
+            </button>
+
+        `);
+    }
+
+
+    window.onpageshow = function() {
+        ajax_group_list();
+        brutal.autod('#sys-common-bar', 'Group List');
+    }
+</script>
+
+<?php include (VIEW_PATH . '/master/footer.html'); ?>

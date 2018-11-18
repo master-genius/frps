@@ -1,0 +1,33 @@
+{
+    "status" : STATUS_CODE,
+    DATA or ERR_INFO
+}
+
+@success:
+    {
+        "status" : 0,
+        DATA
+    }
+    
+    example:
+        {
+            "status" : 0,
+            "media_url" : "https://www.e.com/adhueu9349fyh9yr",
+            "media_id" : "sdhf29r9hsv9qw9e123yesdicsdbi9y912"
+        }
+
+        {
+            "status" : 0,
+            "media_list" : [
+                {...} , {...}...
+            ]
+        }
+
+@error:
+    {
+        "status" : -1,
+        "errno" : ERROR_NUMBER,
+        "errinfo" : ERR_MESSAGE
+    }
+
+

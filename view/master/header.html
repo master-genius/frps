@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Pub Manage</title>
+    <link rel="stylesheet" href="/static/css/fdxy.min.css">
+    <link rel="stylesheet" href="/static/master/css/master.css">
+    <script src="/static/js/raj.js"></script>
+    <script src="/static/js/brutal_1804.js"></script>
+    <script src="/static/js/sys.js"></script>
+    <script src="/static/js/comp.js"></script>
+    <script src="/static/master/js/config.js"></script>
+    
+    <script>
+        var __real_host = "<?php echo $_SERVER['SERVER_ADDR'] . ':' . $_SERVER['SERVER_PORT'] ; ?>";
+        if (_sysv.auto_host) {
+            _sysv.host = 'http://' + __real_host;
+        }
+    </script>
+    <?php
+        if (isset($head_text)) {
+            echo $head_text;
+        }
+    ?>
+    <script src="/static/master/js/api.js"></script>
+    <script>
+        function ajax_logout() {
+            _apicall({
+                name : 'admin_logout',
+                success : function(xr) {
+                    location.href = "/backend/manage";
+                },
+                error : function(err) {
+                    show_system_info('network error', false);
+                },
+                except : function(e) {
+                    show_system_info('system error', false);
+                }
+            });
+        }
+    </script>
+    <style>
+        .head-menu{
+            z-index : 2;
+            position: fixed;
+            top:0;
+            background-color: #ffffff;
+            border-bottom: solid 0.05rem #450023;
+            line-height: 2.55rem;
+            min-height: 2.55rem;
+            width:100%;
+            text-align: center;
+        }
+
+        .head-menu a {
+            color : #4a4a6f;
+        }
+        .head-menu-space {
+            margin-top:2.9rem;
+        }
+
+        #sys-common-bar {
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            /* overflow-x: hidden;  */
+            color:#af23af;
+            margin-left: .2rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="sys-info"></div>
+    <div id="alert-block"></div>
+    <div class="head-menu">
+        <div class="grid-x">
+            <div class="cell small-3 medium-3 large-3">
+                <a href="javascript:change_start_win()" style="color:#4a4a4a;margin-left:.3rem;">
+                    Start
+                </a>
+            </div>
+            <div class="cell small-9 medium-9 large-9">
+                <span id="sys-common-bar">
+                </span>
+            </div>
+            
+        </div>
+        
+        <div id="start-win" class="hide-start-window" style="border: solid 0.05rem #e5e5e5;">
+            <div class="grid-x" style="margin-left:.5rem;">
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/manage">Home</a></p>
+                </div>
+                <?php
+                if (isset($role_menu) && is_array($role_menu)) {
+                    foreach($role_menu as $k=>$m) {
+                        echo '<div class="cell small-12 medium-4 large-3">'
+                            . '<p><a href="' . $m . '">' . $k . '</a></p>'
+                            . '</div>';
+                    }
+                } else {
+                    echo '
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/admin">Admin</a></p>
+                </div>
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/rs/add">New Resource</a></p>
+                </div>
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/group">Group</a></p>
+                </div>
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/rs/list">Resource List</a></p>
+                </div>
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/user/list">Users</a></p>
+                </div>
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="/backend/media">Media</a></p>
+                </div>
+                ';}
+                ?>
+                <div class="cell small-12 medium-4 large-3">
+                    <p><a href="javascript:ajax_logout();" style="color:#923423;">
+                            Logout
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="head-menu-space"></div>
+    
